@@ -1,0 +1,73 @@
+name: Windows Build
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build WPF app
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Restore
+        run: dotnet restore .\Easydict.Windows\Easydict.Windows.csproj
+
+      - name: Build Debug
+        run: dotnet build .\Easydict.Windows\Easydict.Windows.csproj --configuration Debug --no-restore
+
+      - name: Build Release
+        run: dotnet build .\Easydict.Windows\Easydict.Windows.csproj --configuration Release --no-restore
+
+      - name: Publish win-x64
+        run: .\scripts\publish-win-x64.ps1
+
+      - name: Upload win-x64 artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: easydict-windows-win-x64
+          path: Easydict.Windows\bin\Release\net8.0-windows10.0.19041.0\win-x64\publish\
+          if-no-files-found: error
+
+  validate:
+    name: Validate project files
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate XML files
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxml2-utils
+          xmllint --noout \
+            Easydict.Windows/*.xaml \
+            Easydict.Windows/Views/*.xaml \
+            Easydict.Windows/*.csproj \
+            Easydict.Windows/app.manifest \
+            Easydict.Windows/Properties/PublishProfiles/*.pubxml
+
+      - name: Check unfinished markers
+        run: |
+          ! grep -RInE "TODO|FIXME|NotImplemented|throw new NotImplementedException" \
+            --exclude-dir=.git \
+            --exclude-dir=bin \
+            --exclude-dir=obj \
+            .
+

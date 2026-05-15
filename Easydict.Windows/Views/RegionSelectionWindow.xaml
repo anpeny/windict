@@ -1,0 +1,27 @@
+<Window x:Class="Easydict.Windows.Views.RegionSelectionWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        ShowInTaskbar="False"
+        Topmost="True"
+        Background="#22000000"
+        Cursor="Cross">
+    <Canvas x:Name="SelectionCanvas"
+            MouseDown="SelectionCanvas_MouseDown"
+            MouseMove="SelectionCanvas_MouseMove"
+            MouseUp="SelectionCanvas_MouseUp">
+        <Rectangle x:Name="SelectionRectangle"
+                   Stroke="#3B82F6"
+                   StrokeThickness="2"
+                   Fill="#333B82F6"
+                   Visibility="Collapsed" />
+        <TextBlock Canvas.Left="20"
+                   Canvas.Top="20"
+                   Padding="10,6"
+                   Text="拖拽选择 OCR 区域，按 Esc 取消"
+                   Foreground="White"
+                   Background="#AA111827" />
+    </Canvas>
+</Window>
+
