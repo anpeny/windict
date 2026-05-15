@@ -1,3 +1,4 @@
+using System.IO;
 using System.Windows.Media.Imaging;
 using BitmapAlphaMode = global::Windows.Graphics.Imaging.BitmapAlphaMode;
 using BitmapDecoder = global::Windows.Graphics.Imaging.BitmapDecoder;
@@ -48,4 +49,3 @@ public sealed class WindowsOcrService : IOcrService
         return stream.ToArray();
     }
 }
-

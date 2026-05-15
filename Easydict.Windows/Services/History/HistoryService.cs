@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text.Json;
 using Easydict.Windows.Models;
 
@@ -62,4 +63,3 @@ public sealed class HistoryService
 
     private static string HistoryPath => Path.Combine(HistoryDirectory, "history.json");
 }
-

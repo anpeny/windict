@@ -1,6 +1,9 @@
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
+using WpfClipboard = System.Windows.Clipboard;
+using WpfDataFormats = System.Windows.DataFormats;
+using WpfDataObject = System.Windows.IDataObject;
 
 namespace Easydict.Windows.Services.Clipboard;
 
@@ -60,11 +63,11 @@ public sealed class SelectedTextService
 
     private static async Task<string?> TryReadSelectedTextWithClipboardAsync(TimeSpan copyDelay, CancellationToken cancellationToken)
     {
-        IDataObject? previousClipboard = null;
+        WpfDataObject? previousClipboard = null;
         try
         {
-            previousClipboard = Clipboard.ContainsData(DataFormats.Text) || Clipboard.ContainsData(DataFormats.UnicodeText)
-                ? Clipboard.GetDataObject()
+            previousClipboard = WpfClipboard.ContainsData(WpfDataFormats.Text) || WpfClipboard.ContainsData(WpfDataFormats.UnicodeText)
+                ? WpfClipboard.GetDataObject()
                 : null;
         }
         catch (ExternalException)
@@ -78,7 +81,7 @@ public sealed class SelectedTextService
         string? copiedText = null;
         try
         {
-            copiedText = Clipboard.ContainsText() ? Clipboard.GetText() : null;
+            copiedText = WpfClipboard.ContainsText() ? WpfClipboard.GetText() : null;
         }
         catch (ExternalException)
         {
@@ -89,7 +92,7 @@ public sealed class SelectedTextService
         {
             try
             {
-                Clipboard.SetDataObject(previousClipboard, true);
+                WpfClipboard.SetDataObject(previousClipboard, true);
             }
             catch (ExternalException)
             {

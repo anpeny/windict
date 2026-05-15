@@ -3,6 +3,7 @@ using Easydict.Windows.Models;
 using Easydict.Windows.Services.Interop;
 using Easydict.Windows.Services.Translation;
 using Forms = System.Windows.Forms;
+using WpfClipboard = System.Windows.Clipboard;
 
 namespace Easydict.Windows.Views;
 
@@ -97,7 +98,7 @@ public partial class QueryPopupWindow : Window
     {
         if (!string.IsNullOrWhiteSpace(ResultText.Text))
         {
-            Clipboard.SetText(ResultText.Text);
+            WpfClipboard.SetText(ResultText.Text);
         }
     }
 

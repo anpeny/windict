@@ -11,6 +11,7 @@ using Easydict.Windows.Services.Startup;
 using Easydict.Windows.Services.Tray;
 using Easydict.Windows.Services.Translation;
 using Easydict.Windows.Views;
+using WpfClipboard = System.Windows.Clipboard;
 
 namespace Easydict.Windows;
 
@@ -226,7 +227,7 @@ public partial class MainWindow : Window
                 return;
             }
 
-            Clipboard.SetText(recognizedText);
+            WpfClipboard.SetText(recognizedText);
             SetStatus(string.IsNullOrWhiteSpace(recognizedText) ? "静默 OCR 未识别到文字" : "静默 OCR 已复制到剪贴板");
         }
         catch (Exception ex)

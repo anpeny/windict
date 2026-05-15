@@ -1,3 +1,5 @@
+using System.IO;
+
 namespace Easydict.Windows.Services.Diagnostics;
 
 public static class AppLogger

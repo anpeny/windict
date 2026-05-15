@@ -2,6 +2,7 @@ using System.Windows;
 using System.Windows.Input;
 using Easydict.Windows.Models;
 using Easydict.Windows.Services.History;
+using WpfClipboard = System.Windows.Clipboard;
 
 namespace Easydict.Windows.Views;
 
@@ -31,8 +32,7 @@ public partial class HistoryWindow : Window
     {
         if (HistoryListBox.SelectedItem is QueryHistoryItem item && !string.IsNullOrWhiteSpace(item.Query))
         {
-            Clipboard.SetText(item.Query);
+            WpfClipboard.SetText(item.Query);
         }
     }
 }
-
