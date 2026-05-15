@@ -1,5 +1,8 @@
 name: Windows Build
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 on:
   push:
     branches:
@@ -14,7 +17,7 @@ permissions:
 jobs:
   build:
     name: Build WPF app
-    runs-on: windows-latest
+    runs-on: windows-2022
 
     steps:
       - name: Checkout
@@ -67,7 +70,7 @@ jobs:
         run: |
           ! grep -RInE "TODO|FIXME|NotImplemented|throw new NotImplementedException" \
             --exclude-dir=.git \
+            --exclude-dir=.github \
             --exclude-dir=bin \
             --exclude-dir=obj \
             .
-

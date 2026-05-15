@@ -20,8 +20,6 @@ public partial class QueryPopupWindow : Window
         SourceInitialized += (_, _) => WindowInterop.ApplyNoActivateStyles(this);
     }
 
-    protected override bool ShowWithoutActivation => true;
-
     public void SetTranslator(ITranslator nextTranslator)
     {
         translator = nextTranslator;

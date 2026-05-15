@@ -1,14 +1,20 @@
 using System.Windows;
 using Easydict.Windows.Services.Diagnostics;
+using WpfApplication = System.Windows.Application;
+using WpfExitEventArgs = System.Windows.ExitEventArgs;
+using WpfMessageBox = System.Windows.MessageBox;
+using WpfMessageBoxButton = System.Windows.MessageBoxButton;
+using WpfMessageBoxImage = System.Windows.MessageBoxImage;
+using WpfStartupEventArgs = System.Windows.StartupEventArgs;
 
 namespace Easydict.Windows;
 
-public partial class App : Application
+public partial class App : WpfApplication
 {
     private Mutex? singleInstanceMutex;
     private bool ownsSingleInstanceMutex;
 
-    protected override void OnStartup(StartupEventArgs e)
+    protected override void OnStartup(WpfStartupEventArgs e)
     {
         singleInstanceMutex = new Mutex(true, "Easydict.Windows.SingleInstance", out var createdNew);
         if (!createdNew)
@@ -21,7 +27,7 @@ public partial class App : Application
         DispatcherUnhandledException += (_, args) =>
         {
             AppLogger.Log(args.Exception);
-            MessageBox.Show(args.Exception.Message, "Easydict", MessageBoxButton.OK, MessageBoxImage.Error);
+            WpfMessageBox.Show(args.Exception.Message, "Easydict", WpfMessageBoxButton.OK, WpfMessageBoxImage.Error);
             args.Handled = true;
         };
 
@@ -36,7 +42,7 @@ public partial class App : Application
         base.OnStartup(e);
     }
 
-    protected override void OnExit(ExitEventArgs e)
+    protected override void OnExit(WpfExitEventArgs e)
     {
         if (ownsSingleInstanceMutex)
         {

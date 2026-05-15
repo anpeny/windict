@@ -3,6 +3,10 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using Easydict.Windows.Services.ScreenCapture;
+using WpfKey = System.Windows.Input.Key;
+using WpfKeyEventArgs = System.Windows.Input.KeyEventArgs;
+using WpfMouseButtonEventArgs = System.Windows.Input.MouseButtonEventArgs;
+using WpfMouseEventArgs = System.Windows.Input.MouseEventArgs;
 using WpfPoint = System.Windows.Point;
 
 namespace Easydict.Windows.Views;
@@ -29,7 +33,7 @@ public partial class RegionSelectionWindow : Window
         return selectedRegion;
     }
 
-    private void SelectionCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+    private void SelectionCanvas_MouseDown(object sender, WpfMouseButtonEventArgs e)
     {
         startPoint = e.GetPosition(this);
         SelectionRectangle.Visibility = Visibility.Visible;
@@ -40,7 +44,7 @@ public partial class RegionSelectionWindow : Window
         CaptureMouse();
     }
 
-    private void SelectionCanvas_MouseMove(object sender, MouseEventArgs e)
+    private void SelectionCanvas_MouseMove(object sender, WpfMouseEventArgs e)
     {
         if (startPoint is null)
         {
@@ -59,7 +63,7 @@ public partial class RegionSelectionWindow : Window
         SelectionRectangle.Height = height;
     }
 
-    private void SelectionCanvas_MouseUp(object sender, MouseButtonEventArgs e)
+    private void SelectionCanvas_MouseUp(object sender, WpfMouseButtonEventArgs e)
     {
         if (startPoint is null)
         {
@@ -82,9 +86,9 @@ public partial class RegionSelectionWindow : Window
         Close();
     }
 
-    private void RegionSelectionWindow_KeyDown(object sender, KeyEventArgs e)
+    private void RegionSelectionWindow_KeyDown(object sender, WpfKeyEventArgs e)
     {
-        if (e.Key == Key.Escape)
+        if (e.Key == WpfKey.Escape)
         {
             selectedRegion = null;
             Close();
