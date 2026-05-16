@@ -1,10 +1,12 @@
 using System.IO;
+using System.Text;
 using System.Windows.Media.Imaging;
 using BitmapAlphaMode = global::Windows.Graphics.Imaging.BitmapAlphaMode;
 using BitmapDecoder = global::Windows.Graphics.Imaging.BitmapDecoder;
 using BitmapPixelFormat = global::Windows.Graphics.Imaging.BitmapPixelFormat;
 using DataWriter = global::Windows.Storage.Streams.DataWriter;
 using InMemoryRandomAccessStream = global::Windows.Storage.Streams.InMemoryRandomAccessStream;
+using Language = global::Windows.Globalization.Language;
 using OcrEngine = global::Windows.Media.Ocr.OcrEngine;
 
 namespace Easydict.Windows.Services.Ocr;
@@ -28,7 +30,8 @@ public sealed class WindowsOcrService : IOcrService
         randomAccessStream.Seek(0);
         var decoder = await BitmapDecoder.CreateAsync(randomAccessStream);
         var softwareBitmap = await decoder.GetSoftwareBitmapAsync(BitmapPixelFormat.Bgra8, BitmapAlphaMode.Premultiplied);
-        var engine = OcrEngine.TryCreateFromUserProfileLanguages();
+        var engine = OcrEngine.TryCreateFromLanguage(new Language("zh-Hans"))
+            ?? OcrEngine.TryCreateFromUserProfileLanguages();
         if (engine is null)
         {
             return string.Empty;
@@ -36,7 +39,7 @@ public sealed class WindowsOcrService : IOcrService
 
         cancellationToken.ThrowIfCancellationRequested();
         var result = await engine.RecognizeAsync(softwareBitmap);
-        return result.Text ?? string.Empty;
+        return (result.Text ?? string.Empty).Normalize(NormalizationForm.FormKC);
     }
 
     private static byte[] EncodePng(BitmapSource image)

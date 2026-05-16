@@ -32,7 +32,7 @@ public partial class QueryPopupWindow : Window
         await SearchAsync();
     }
 
-    public void ShowNearCursor(string? presetText = null)
+    public void ShowNearCursor(string? presetText = null, bool activateForInput = false)
     {
         if (!string.IsNullOrWhiteSpace(presetText))
         {
@@ -48,7 +48,16 @@ public partial class QueryPopupWindow : Window
             Show();
         }
 
-        WindowInterop.ShowNoActivate(this);
+        if (activateForInput)
+        {
+            Activate();
+            QueryTextBox.Focus();
+            QueryTextBox.SelectAll();
+        }
+        else
+        {
+            WindowInterop.ShowNoActivate(this);
+        }
 
         if (!string.IsNullOrWhiteSpace(presetText))
         {

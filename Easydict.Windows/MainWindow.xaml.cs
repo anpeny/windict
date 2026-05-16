@@ -84,7 +84,7 @@ public partial class MainWindow : Window
 
     private void OpenLookupButton_Click(object sender, RoutedEventArgs e)
     {
-        _ = OpenLookupFromSelectionAsync();
+        OpenLookupPopup(activateForInput: true);
     }
 
     private void CaptureOcrButton_Click(object sender, RoutedEventArgs e)
@@ -128,7 +128,7 @@ public partial class MainWindow : Window
     {
         UpdateSettingsFromForm();
         RebuildTranslator();
-        OpenLookupPopup();
+        OpenLookupPopup(activateForInput: true);
         if (queryPopupWindow is not null)
         {
             await queryPopupWindow.SearchTextAsync("题干关键词");
@@ -145,13 +145,13 @@ public partial class MainWindow : Window
         SetStatus("题库接口预设已填入，请补充 Authorization 后保存");
     }
 
-    private void OpenLookupPopup(string? presetText = null)
+    private void OpenLookupPopup(string? presetText = null, bool activateForInput = false)
     {
         queryPopupWindow ??= new QueryPopupWindow(translator);
         queryPopupWindow.SetTranslator(translator);
         queryPopupWindow.QueryCompleted -= QueryPopupWindow_QueryCompleted;
         queryPopupWindow.QueryCompleted += QueryPopupWindow_QueryCompleted;
-        queryPopupWindow.ShowNearCursor(presetText);
+        queryPopupWindow.ShowNearCursor(presetText, activateForInput);
         SetStatus("查询浮窗已显示");
     }
 
@@ -172,7 +172,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            OpenLookupPopup();
+            OpenLookupPopup(activateForInput: true);
             SetStatus($"读取选中文字失败：{ex.Message}");
         }
     }
@@ -244,19 +244,26 @@ public partial class MainWindow : Window
 
         var selectionWindow = new RegionSelectionWindow();
         var region = selectionWindow.SelectRegion();
+        if (region is null || region.Value.Width <= 2 || region.Value.Height <= 2)
+        {
+            if (restoreMainWindow)
+            {
+                ShowMainWindow();
+            }
+
+            return null;
+        }
+
+        SetStatus("正在识别区域文字...");
+        await Task.Delay(180);
+        var image = screenCaptureService.CaptureRegion(region.Value);
+        var text = await ocrService.RecognizeAsync(image, CancellationToken.None);
         if (restoreMainWindow)
         {
             ShowMainWindow();
         }
 
-        if (region is null || region.Value.Width <= 2 || region.Value.Height <= 2)
-        {
-            return null;
-        }
-
-        SetStatus("正在识别区域文字...");
-        var image = screenCaptureService.CaptureRegion(region.Value);
-        return await ocrService.RecognizeAsync(image, CancellationToken.None);
+        return text;
     }
 
     private void ApplySettingsToForm()
