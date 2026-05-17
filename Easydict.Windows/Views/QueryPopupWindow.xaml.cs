@@ -4,6 +4,10 @@ using Easydict.Windows.Services.Interop;
 using Easydict.Windows.Services.Translation;
 using Forms = System.Windows.Forms;
 using WpfClipboard = System.Windows.Clipboard;
+using WpfKey = System.Windows.Input.Key;
+using WpfKeyEventArgs = System.Windows.Input.KeyEventArgs;
+using WpfModifierKeys = System.Windows.Input.ModifierKeys;
+using WpfKeyboard = System.Windows.Input.Keyboard;
 
 namespace Easydict.Windows.Views;
 
@@ -72,6 +76,12 @@ public partial class QueryPopupWindow : Window
 
     private async Task SearchAsync()
     {
+        if (string.IsNullOrWhiteSpace(QueryTextBox.Text))
+        {
+            ResultText.Text = "请输入要查询的内容。";
+            return;
+        }
+
         ResultText.Text = "查询中...";
         searchCancellation?.Cancel();
         searchCancellation = new CancellationTokenSource();
@@ -111,9 +121,34 @@ public partial class QueryPopupWindow : Window
         }
     }
 
+    private void CopyQueryButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (!string.IsNullOrWhiteSpace(QueryTextBox.Text))
+        {
+            WpfClipboard.SetText(QueryTextBox.Text);
+        }
+    }
+
     private void ClearButton_Click(object sender, RoutedEventArgs e)
     {
         QueryTextBox.Clear();
         ResultText.Text = "输入内容后点击查询。";
+    }
+
+    private async void QueryTextBox_KeyDown(object sender, WpfKeyEventArgs e)
+    {
+        if (e.Key == WpfKey.Enter && WpfKeyboard.Modifiers.HasFlag(WpfModifierKeys.Control))
+        {
+            e.Handled = true;
+            await SearchAsync();
+        }
+    }
+
+    private void Window_KeyDown(object sender, WpfKeyEventArgs e)
+    {
+        if (e.Key == WpfKey.Escape)
+        {
+            Hide();
+        }
     }
 }

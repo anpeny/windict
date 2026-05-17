@@ -33,6 +33,8 @@ Use this checklist on a real Windows machine after each desktop-integration chan
 - Press `Ctrl+Alt+D` in Visual Studio Code.
 - Change the lookup shortcut in settings and save.
 - Confirm the old shortcut stops working and the new shortcut works.
+- Configure two actions with the same shortcut and confirm the app reports a conflict.
+- Confirm the old shortcuts still work after a failed shortcut save.
 - Confirm shortcut registration errors are visible.
 
 ## Selected Text
@@ -42,6 +44,7 @@ Use this checklist on a real Windows machine after each desktop-integration chan
 - Select text in Visual Studio Code and trigger lookup.
 - Confirm the clipboard content is restored after lookup.
 - Confirm manual popup mode appears when no selected text is available.
+- Confirm the manual popup focuses the input field when selected text is unavailable.
 
 ## No-Focus Popup
 

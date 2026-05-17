@@ -174,8 +174,15 @@ public partial class MainWindow : Window
         {
             SetStatus("正在读取选中文字...");
             var selectedText = await selectedTextService.TryReadSelectedTextAsync(TimeSpan.FromMilliseconds(180), CancellationToken.None);
+            if (string.IsNullOrWhiteSpace(selectedText))
+            {
+                OpenLookupPopup(activateForInput: true);
+                SetStatus("未读取到选中文字");
+                return;
+            }
+
             OpenLookupPopup(selectedText);
-            SetStatus(string.IsNullOrWhiteSpace(selectedText) ? "未读取到选中文字" : "已读取选中文字");
+            SetStatus("已读取选中文字");
         }
         catch (Exception ex)
         {
@@ -189,13 +196,17 @@ public partial class MainWindow : Window
         try
         {
             SetStatus("正在截图并识别文字...");
+            Hide();
+            await Task.Delay(160);
             var image = screenCaptureService.CaptureAllScreens();
             var recognizedText = await ocrService.RecognizeAsync(image, CancellationToken.None);
+            ShowMainWindow();
             OpenLookupPopup(recognizedText);
             SetStatus(string.IsNullOrWhiteSpace(recognizedText) ? "OCR 未识别到文字" : "OCR 已完成");
         }
         catch (Exception ex)
         {
+            ShowMainWindow();
             SetStatus($"OCR 失败：{ex.Message}");
         }
     }
@@ -314,14 +325,37 @@ public partial class MainWindow : Window
 
     private void RegisterHotkeys()
     {
+        ValidateHotkeyUniqueness();
+
+        var nextHotkeyService = new GlobalHotkeyService(this);
+        nextHotkeyService.HotkeyPressed += HotkeyService_HotkeyPressed;
+        nextHotkeyService.Register(HotkeyAction.Input, settings.Hotkeys.Input);
+        nextHotkeyService.Register(HotkeyAction.Lookup, settings.Hotkeys.Lookup);
+        nextHotkeyService.Register(HotkeyAction.Ocr, settings.Hotkeys.Ocr);
+        nextHotkeyService.Register(HotkeyAction.SilentOcr, settings.Hotkeys.SilentOcr);
+
         hotkeyService?.Dispose();
-        hotkeyService = new GlobalHotkeyService(this);
-        hotkeyService.HotkeyPressed += HotkeyService_HotkeyPressed;
-        hotkeyService.Register(HotkeyAction.Input, settings.Hotkeys.Input);
-        hotkeyService.Register(HotkeyAction.Lookup, settings.Hotkeys.Lookup);
-        hotkeyService.Register(HotkeyAction.Ocr, settings.Hotkeys.Ocr);
-        hotkeyService.Register(HotkeyAction.SilentOcr, settings.Hotkeys.SilentOcr);
+        hotkeyService = nextHotkeyService;
         SetStatus("全局快捷键已注册");
+    }
+
+    private void ValidateHotkeyUniqueness()
+    {
+        var hotkeys = new[]
+        {
+            ("输入查询", settings.Hotkeys.Input),
+            ("划词查询", settings.Hotkeys.Lookup),
+            ("OCR", settings.Hotkeys.Ocr),
+            ("静默 OCR", settings.Hotkeys.SilentOcr),
+        };
+
+        var duplicate = hotkeys
+            .GroupBy(item => HotkeyGestureParser.ToInvariantText(item.Item2))
+            .FirstOrDefault(group => group.Count() > 1);
+        if (duplicate is not null)
+        {
+            throw new InvalidOperationException($"快捷键冲突：{string.Join("、", duplicate.Select(item => item.Item1))}");
+        }
     }
 
     private void ShowHistoryWindow()

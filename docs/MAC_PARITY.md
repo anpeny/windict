@@ -13,6 +13,7 @@ This document tracks Windows parity against the core macOS Easydict workflows.
 | Non-disruptive popup | Implemented | Uses non-activating WPF window and Win32 extended styles. |
 | Background operation | Implemented | Tray icon, hide-on-close, and exit action are available. |
 | Configurable shortcuts | Implemented | Lookup, OCR, and silent OCR hotkeys are editable. |
+| Empty selection fallback | Implemented | The manual input popup opens with focus when selected text is unavailable. |
 | Query history | Implemented | Local JSON history stores recent queries and results. |
 | Custom request service | Implemented | JSON/Form POST, Authorization header, query field, and result path are configurable. |
 | Question bank API preset | Implemented | Preset matches the provided `/api/v1/search` endpoint. |

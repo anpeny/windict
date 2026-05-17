@@ -86,6 +86,11 @@ public static class HotkeyGestureParser
         return string.Join("+", parts);
     }
 
+    public static string ToInvariantText(HotkeyGesture gesture)
+    {
+        return $"{(uint)gesture.Modifiers}:{gesture.VirtualKey}";
+    }
+
     private static Key ParseKey(string text)
     {
         var converter = new KeyConverter();

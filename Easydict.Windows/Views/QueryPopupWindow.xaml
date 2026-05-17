@@ -8,7 +8,8 @@
         ShowInTaskbar="False"
         Topmost="True"
         WindowStyle="None"
-        Background="Transparent">
+        Background="Transparent"
+        KeyDown="Window_KeyDown">
     <Border Padding="16"
             CornerRadius="8"
             Background="White"
@@ -47,6 +48,7 @@
                      MinHeight="76"
                      Padding="8"
                      AcceptsReturn="True"
+                     KeyDown="QueryTextBox_KeyDown"
                      TextWrapping="Wrap" />
 
             <ScrollViewer Grid.Row="2"
@@ -62,6 +64,10 @@
                         Margin="0,14,0,0"
                         HorizontalAlignment="Right"
                         Orientation="Horizontal">
+                <Button MinWidth="88"
+                        Margin="0,0,8,0"
+                        Content="复制输入"
+                        Click="CopyQueryButton_Click" />
                 <Button MinWidth="88"
                         Margin="0,0,8,0"
                         Content="复制结果"
