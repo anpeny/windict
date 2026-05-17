@@ -11,6 +11,7 @@ using Easydict.Windows.Services.Startup;
 using Easydict.Windows.Services.Tray;
 using Easydict.Windows.Services.Translation;
 using Easydict.Windows.Views;
+using WpfApplication = System.Windows.Application;
 using WpfClipboard = System.Windows.Clipboard;
 
 namespace Easydict.Windows;
@@ -445,6 +446,6 @@ public partial class MainWindow : Window
     {
         isExitRequested = true;
         Close();
-        Application.Current.Shutdown();
+        WpfApplication.Current.Shutdown();
     }
 }
