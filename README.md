@@ -102,7 +102,8 @@ Publish a self-contained x64 folder build:
 
 ## Initial Shortcuts
 
-- `Ctrl+Alt+D`: show lookup popup
+- `Ctrl+Alt+A`: show manual input popup
+- `Ctrl+Alt+D`: selected-text lookup
 - `Ctrl+Alt+S`: capture screen and run OCR
 
 These defaults can be changed in the main window with shortcut strings such as `Ctrl+Alt+D`, `Ctrl+Shift+Space`, or `Alt+Q`.

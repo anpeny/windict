@@ -8,6 +8,7 @@ public sealed class TrayIconService : IDisposable
     private readonly Forms.NotifyIcon notifyIcon;
 
     public event EventHandler? ShowRequested;
+    public event EventHandler? InputRequested;
     public event EventHandler? LookupRequested;
     public event EventHandler? OcrRequested;
     public event EventHandler? RegionOcrRequested;
@@ -42,6 +43,7 @@ public sealed class TrayIconService : IDisposable
     {
         var menu = new Forms.ContextMenuStrip();
         menu.Items.Add("Show", null, (_, _) => ShowRequested?.Invoke(this, EventArgs.Empty));
+        menu.Items.Add("Input Lookup", null, (_, _) => InputRequested?.Invoke(this, EventArgs.Empty));
         menu.Items.Add("Lookup", null, (_, _) => LookupRequested?.Invoke(this, EventArgs.Empty));
         menu.Items.Add("Full Screen OCR", null, (_, _) => OcrRequested?.Invoke(this, EventArgs.Empty));
         menu.Items.Add("Region OCR", null, (_, _) => RegionOcrRequested?.Invoke(this, EventArgs.Empty));

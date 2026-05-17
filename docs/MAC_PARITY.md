@@ -6,7 +6,7 @@ This document tracks Windows parity against the core macOS Easydict workflows.
 
 | macOS Easydict workflow | Windows status | Notes |
 | --- | --- | --- |
-| Manual input lookup | Implemented | Query popup supports typed text and custom HTTP lookup. |
+| Manual input lookup | Implemented | Query popup supports typed text, custom HTTP lookup, and a global input hotkey. |
 | Shortcut selected-text lookup | Implemented | Uses UI Automation text selection first, then clipboard preservation. |
 | Screenshot OCR lookup | Implemented | Full-screen OCR and region OCR are available. |
 | Silent screenshot OCR | Implemented | Region OCR can copy recognized text directly to the clipboard. |
@@ -44,4 +44,3 @@ The following cannot be proven from macOS:
 - Startup registration through the current-user Run key.
 
 Use `docs/WINDOWS_VALIDATION.md` on a Windows machine before considering the app release-ready.
-

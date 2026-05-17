@@ -83,6 +83,7 @@ public enum HotkeyAction
     Lookup = 1,
     Ocr = 2,
     SilentOcr = 3,
+    Input = 4,
 }
 
 [Flags]

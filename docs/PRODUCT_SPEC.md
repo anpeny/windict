@@ -24,7 +24,7 @@ The app should feel like a lightweight desktop assistant: always available, fast
 
 ### Manual Text Lookup
 
-1. The user presses the lookup shortcut.
+1. The user presses the input shortcut.
 2. Easydict shows a non-activating query popup.
 3. The user types or pastes text.
 4. Easydict shows translation results.

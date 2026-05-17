@@ -20,7 +20,7 @@
                        FontWeight="SemiBold"
                        Foreground="{StaticResource PrimaryTextBrush}" />
             <TextBlock Margin="0,8,0,0"
-                       Text="Ctrl+Alt+D 查询，Ctrl+Alt+S 截图 OCR"
+                       Text="Ctrl+Alt+A 输入，Ctrl+Alt+D 划词，Ctrl+Alt+S 截图 OCR"
                        Foreground="{StaticResource SecondaryTextBrush}" />
         </StackPanel>
 
@@ -78,6 +78,7 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
@@ -168,8 +169,8 @@
                         <TextBlock Grid.Row="8"
                                    Margin="0,12,12,0"
                                    VerticalAlignment="Center"
-                                   Text="Lookup Hotkey" />
-                        <TextBox x:Name="LookupHotkeyTextBox"
+                                   Text="Input Hotkey" />
+                        <TextBox x:Name="InputHotkeyTextBox"
                                  Grid.Row="8"
                                  Grid.Column="1"
                                  Margin="0,12,0,0"
@@ -178,8 +179,8 @@
                         <TextBlock Grid.Row="9"
                                    Margin="0,12,12,0"
                                    VerticalAlignment="Center"
-                                   Text="OCR Hotkey" />
-                        <TextBox x:Name="OcrHotkeyTextBox"
+                                   Text="Lookup Hotkey" />
+                        <TextBox x:Name="LookupHotkeyTextBox"
                                  Grid.Row="9"
                                  Grid.Column="1"
                                  Margin="0,12,0,0"
@@ -188,20 +189,30 @@
                         <TextBlock Grid.Row="10"
                                    Margin="0,12,12,0"
                                    VerticalAlignment="Center"
+                                   Text="OCR Hotkey" />
+                        <TextBox x:Name="OcrHotkeyTextBox"
+                                 Grid.Row="10"
+                                 Grid.Column="1"
+                                 Margin="0,12,0,0"
+                                 MinHeight="30" />
+
+                        <TextBlock Grid.Row="11"
+                                   Margin="0,12,12,0"
+                                   VerticalAlignment="Center"
                                    Text="Silent OCR Hotkey" />
                         <TextBox x:Name="SilentOcrHotkeyTextBox"
-                                  Grid.Row="10"
+                                  Grid.Row="11"
                                   Grid.Column="1"
                                   Margin="0,12,0,0"
                                   MinHeight="30" />
 
                         <CheckBox x:Name="LaunchAtLoginCheckBox"
-                                  Grid.Row="11"
+                                  Grid.Row="12"
                                   Grid.Column="1"
                                   Margin="0,12,0,0"
                                   Content="Start Easydict when Windows starts" />
 
-                        <StackPanel Grid.Row="12"
+                        <StackPanel Grid.Row="13"
                                     Grid.Column="1"
                                     Margin="0,16,0,0"
                                     Orientation="Horizontal">

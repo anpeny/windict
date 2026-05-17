@@ -14,6 +14,12 @@ public sealed class AppSettings
 
 public sealed class HotkeySettings
 {
+    public HotkeyGesture Input { get; set; } = new()
+    {
+        Modifiers = HotkeyModifiers.Control | HotkeyModifiers.Alt | HotkeyModifiers.NoRepeat,
+        VirtualKey = 0x41,
+    };
+
     public HotkeyGesture Lookup { get; set; } = new()
     {
         Modifiers = HotkeyModifiers.Control | HotkeyModifiers.Alt | HotkeyModifiers.NoRepeat,

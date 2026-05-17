@@ -47,6 +47,7 @@ public partial class MainWindow : Window
 
         trayIconService = new TrayIconService();
         trayIconService.ShowRequested += (_, _) => ShowMainWindow();
+        trayIconService.InputRequested += (_, _) => OpenLookupPopup(activateForInput: true);
         trayIconService.LookupRequested += (_, _) => _ = OpenLookupFromSelectionAsync();
         trayIconService.OcrRequested += (_, _) => _ = CaptureOcrAsync();
         trayIconService.RegionOcrRequested += (_, _) => _ = CaptureRegionOcrAsync();
@@ -64,6 +65,12 @@ public partial class MainWindow : Window
 
     private void HotkeyService_HotkeyPressed(object? sender, HotkeyPressedEventArgs e)
     {
+        if (e.Action == HotkeyAction.Input)
+        {
+            OpenLookupPopup(activateForInput: true);
+            return;
+        }
+
         if (e.Action == HotkeyAction.Lookup)
         {
             _ = OpenLookupFromSelectionAsync();
@@ -275,6 +282,7 @@ public partial class MainWindow : Window
         ResultPathTextBox.Text = settings.Translation.ResultPath;
         SourceLanguageTextBox.Text = settings.Translation.SourceLanguage;
         TargetLanguageTextBox.Text = settings.Translation.TargetLanguage;
+        InputHotkeyTextBox.Text = HotkeyGestureParser.ToDisplayText(settings.Hotkeys.Input);
         LookupHotkeyTextBox.Text = HotkeyGestureParser.ToDisplayText(settings.Hotkeys.Lookup);
         OcrHotkeyTextBox.Text = HotkeyGestureParser.ToDisplayText(settings.Hotkeys.Ocr);
         SilentOcrHotkeyTextBox.Text = HotkeyGestureParser.ToDisplayText(settings.Hotkeys.SilentOcr);
@@ -290,6 +298,7 @@ public partial class MainWindow : Window
         settings.Translation.ResultPath = ResultPathTextBox.Text.Trim();
         settings.Translation.SourceLanguage = string.IsNullOrWhiteSpace(SourceLanguageTextBox.Text) ? "auto" : SourceLanguageTextBox.Text.Trim();
         settings.Translation.TargetLanguage = string.IsNullOrWhiteSpace(TargetLanguageTextBox.Text) ? "zh" : TargetLanguageTextBox.Text.Trim();
+        settings.Hotkeys.Input = HotkeyGestureParser.Parse(InputHotkeyTextBox.Text);
         settings.Hotkeys.Lookup = HotkeyGestureParser.Parse(LookupHotkeyTextBox.Text);
         settings.Hotkeys.Ocr = HotkeyGestureParser.Parse(OcrHotkeyTextBox.Text);
         settings.Hotkeys.SilentOcr = HotkeyGestureParser.Parse(SilentOcrHotkeyTextBox.Text);
@@ -308,6 +317,7 @@ public partial class MainWindow : Window
         hotkeyService?.Dispose();
         hotkeyService = new GlobalHotkeyService(this);
         hotkeyService.HotkeyPressed += HotkeyService_HotkeyPressed;
+        hotkeyService.Register(HotkeyAction.Input, settings.Hotkeys.Input);
         hotkeyService.Register(HotkeyAction.Lookup, settings.Hotkeys.Lookup);
         hotkeyService.Register(HotkeyAction.Ocr, settings.Hotkeys.Ocr);
         hotkeyService.Register(HotkeyAction.SilentOcr, settings.Hotkeys.SilentOcr);
