@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows;
 using System.Windows.Interop;
 
@@ -8,15 +10,20 @@ namespace Easydict.Windows.Services.Hotkeys;
 public sealed class GlobalHotkeyService : IDisposable
 {
     private const int WmHotkey = 0x0312;
+    private static int nextIdBase;
+
     private readonly IntPtr windowHandle;
     private readonly HwndSource source;
     private readonly Collection<int> registeredIds = [];
+    private readonly Dictionary<int, HotkeyAction> actionsById = [];
+    private readonly int idBase;
     private bool disposed;
 
     public event EventHandler<HotkeyPressedEventArgs>? HotkeyPressed;
 
     public GlobalHotkeyService(Window owner)
     {
+        idBase = Interlocked.Add(ref nextIdBase, 16);
         windowHandle = new WindowInteropHelper(owner).EnsureHandle();
         source = HwndSource.FromHwnd(windowHandle) ?? throw new InvalidOperationException("Unable to attach to the window message source.");
         source.AddHook(WndProc);
@@ -33,13 +40,14 @@ public sealed class GlobalHotkeyService : IDisposable
 
     public void Register(HotkeyAction action, HotkeyGesture gesture)
     {
-        var id = (int)action;
+        var id = idBase + (int)action;
         if (!RegisterHotKey(windowHandle, id, (uint)gesture.Modifiers, (uint)gesture.VirtualKey))
         {
             throw new InvalidOperationException($"Unable to register global hotkey for {action}.");
         }
 
         registeredIds.Add(id);
+        actionsById[id] = action;
     }
 
     private IntPtr WndProc(IntPtr hwnd, int message, IntPtr wParam, IntPtr lParam, ref bool handled)
@@ -49,8 +57,13 @@ public sealed class GlobalHotkeyService : IDisposable
             return IntPtr.Zero;
         }
 
+        var id = wParam.ToInt32();
+        if (!actionsById.TryGetValue(id, out var action))
+        {
+            return IntPtr.Zero;
+        }
+
         handled = true;
-        var action = (HotkeyAction)wParam.ToInt32();
         HotkeyPressed?.Invoke(this, new HotkeyPressedEventArgs(action));
         return IntPtr.Zero;
     }
@@ -68,6 +81,8 @@ public sealed class GlobalHotkeyService : IDisposable
             UnregisterHotKey(windowHandle, id);
         }
 
+        registeredIds.Clear();
+        actionsById.Clear();
         disposed = true;
     }
 

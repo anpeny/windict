@@ -69,7 +69,14 @@ public partial class MainWindow : Window
 
     private void MainWindow_SourceInitialized(object? sender, EventArgs e)
     {
-        RegisterHotkeys();
+        try
+        {
+            RegisterHotkeys();
+        }
+        catch (Exception ex)
+        {
+            SetStatus($"全局快捷键注册失败：{ex.Message}");
+        }
     }
 
     private void HotkeyService_HotkeyPressed(object? sender, HotkeyPressedEventArgs e)
