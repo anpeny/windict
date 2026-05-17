@@ -11,7 +11,7 @@ This document tracks Windows parity against the core macOS Easydict workflows.
 | Screenshot OCR lookup | Implemented | Full-screen OCR and region OCR are available. |
 | Silent screenshot OCR | Implemented | Region OCR can copy recognized text directly to the clipboard. |
 | Non-disruptive popup | Implemented | Uses non-activating WPF window and Win32 extended styles. |
-| Background operation | Implemented | The app can start hidden in the system tray, minimize to tray, hide on close, and exit from the tray menu. |
+| Background operation | Implemented | The app can start hidden in the system tray, minimize to tray, hide on close, exit from the tray menu, and show the existing tray instance when launched again. |
 | Configurable shortcuts | Implemented | Lookup, OCR, and silent OCR hotkeys are editable. |
 | Empty selection fallback | Implemented | The manual input popup opens with focus when selected text is unavailable. |
 | Query history | Implemented | Local JSON history stores recent queries and results. |

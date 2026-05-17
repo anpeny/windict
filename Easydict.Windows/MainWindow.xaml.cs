@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     private ITranslator translator = new EchoTranslator();
     private bool isExitRequested;
 
+    public bool ShouldStartInTray => settings.StartInTray;
+
     public MainWindow()
     {
         settings = settingsService.Load();
@@ -434,9 +436,15 @@ public partial class MainWindow : Window
         Activate();
     }
 
+    public void RequestShowMainWindow()
+    {
+        ShowMainWindow();
+    }
+
     private void ExitApplication()
     {
         isExitRequested = true;
         Close();
+        Application.Current.Shutdown();
     }
 }
