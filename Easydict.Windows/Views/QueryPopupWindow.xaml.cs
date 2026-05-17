@@ -38,9 +38,13 @@ public partial class QueryPopupWindow : Window
 
     public void ShowNearCursor(string? presetText = null, bool activateForInput = false)
     {
-        if (!string.IsNullOrWhiteSpace(presetText))
+        if (presetText is not null)
         {
             QueryTextBox.Text = presetText;
+            if (string.IsNullOrWhiteSpace(presetText))
+            {
+                ResultText.Text = "未识别到可查询的内容。";
+            }
         }
 
         var cursor = Forms.Cursor.Position;
