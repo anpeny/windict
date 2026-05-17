@@ -19,12 +19,19 @@ public partial class RegionSelectionWindow : Window
     public RegionSelectionWindow()
     {
         InitializeComponent();
-        var bounds = ScreenCaptureService.GetVirtualScreenBounds();
-        Left = bounds.Left;
-        Top = bounds.Top;
-        Width = bounds.Width;
-        Height = bounds.Height;
+        SourceInitialized += (_, _) => ApplyVirtualScreenBounds();
         KeyDown += RegionSelectionWindow_KeyDown;
+    }
+
+    private void ApplyVirtualScreenBounds()
+    {
+        var bounds = ScreenCaptureService.GetVirtualScreenBounds();
+        var topLeft = PointFromScreen(new WpfPoint(bounds.Left, bounds.Top));
+        var bottomRight = PointFromScreen(new WpfPoint(bounds.Right, bounds.Bottom));
+        Left = topLeft.X;
+        Top = topLeft.Y;
+        Width = Math.Abs(bottomRight.X - topLeft.X);
+        Height = Math.Abs(bottomRight.Y - topLeft.Y);
     }
 
     public Rectangle? SelectRegion()
@@ -71,16 +78,18 @@ public partial class RegionSelectionWindow : Window
         }
 
         var current = e.GetPosition(this);
-        var left = Math.Min(startPoint.Value.X, current.X);
-        var top = Math.Min(startPoint.Value.Y, current.Y);
-        var width = Math.Abs(current.X - startPoint.Value.X);
-        var height = Math.Abs(current.Y - startPoint.Value.Y);
+        var screenStart = PointToScreen(startPoint.Value);
+        var screenCurrent = PointToScreen(current);
+        var screenLeft = Math.Min(screenStart.X, screenCurrent.X);
+        var screenTop = Math.Min(screenStart.Y, screenCurrent.Y);
+        var screenWidth = Math.Abs(screenCurrent.X - screenStart.X);
+        var screenHeight = Math.Abs(screenCurrent.Y - screenStart.Y);
 
         selectedRegion = new Rectangle(
-            (int)Math.Round(Left + left),
-            (int)Math.Round(Top + top),
-            (int)Math.Round(width),
-            (int)Math.Round(height));
+            (int)Math.Round(screenLeft),
+            (int)Math.Round(screenTop),
+            (int)Math.Round(screenWidth),
+            (int)Math.Round(screenHeight));
 
         ReleaseMouseCapture();
         Close();

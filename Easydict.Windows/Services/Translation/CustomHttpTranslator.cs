@@ -49,11 +49,23 @@ public sealed class CustomHttpTranslator : ITranslator
         var content = await response.Content.ReadAsStringAsync(cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            return new TranslationResult($"请求失败：{(int)response.StatusCode} {response.ReasonPhrase}\n\n{content}");
+            return new TranslationResult($"请求失败：{(int)response.StatusCode} {response.ReasonPhrase}\n\n{TrimForDisplay(content)}");
         }
 
         var extracted = ExtractResult(content, settings.ResultPath);
-        return new TranslationResult(string.IsNullOrWhiteSpace(extracted) ? content : extracted);
+        var displayText = string.IsNullOrWhiteSpace(extracted) ? content : extracted;
+        return new TranslationResult(string.IsNullOrWhiteSpace(displayText) ? "服务返回了空结果。" : TrimForDisplay(displayText));
+    }
+
+    private static string TrimForDisplay(string content)
+    {
+        const int maxDisplayLength = 4000;
+        if (content.Length <= maxDisplayLength)
+        {
+            return content;
+        }
+
+        return content[..maxDisplayLength] + Environment.NewLine + "...";
     }
 
     private static string? ExtractResult(string content, string resultPath)

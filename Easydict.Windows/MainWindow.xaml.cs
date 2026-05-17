@@ -75,6 +75,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            AppLogger.Log(ex, "Initial hotkey registration failed.");
             SetStatus($"全局快捷键注册失败：{ex.Message}");
         }
     }
@@ -132,39 +133,71 @@ public partial class MainWindow : Window
 
     private void SaveSettingsButton_Click(object sender, RoutedEventArgs e)
     {
+        var hotkeysReplaced = false;
         try
         {
-            UpdateSettingsFromForm();
-            RebuildTranslator();
-            RegisterHotkeys();
-            settingsService.Save(settings);
-            startupRegistrationService.SetEnabled(settings.LaunchAtLogin);
+            var nextSettings = CreateSettingsFromForm();
+            var nextTranslator = BuildTranslator(nextSettings);
+            ValidateHotkeyUniqueness(nextSettings);
+            ReplaceHotkeys(nextSettings);
+            hotkeysReplaced = true;
+            startupRegistrationService.SetEnabled(nextSettings.LaunchAtLogin);
+            settingsService.Save(nextSettings);
+
+            settings = nextSettings;
+            translator = nextTranslator;
+            queryPopupWindow?.SetTranslator(translator);
             SetStatus("设置已保存");
         }
         catch (Exception ex)
         {
+            if (hotkeysReplaced)
+            {
+                TryRestoreCurrentHotkeys();
+            }
+
+            AppLogger.Log(ex, "Settings save failed.");
+            try
+            {
+                startupRegistrationService.SetEnabled(settings.LaunchAtLogin);
+            }
+            catch (Exception rollbackException)
+            {
+                AppLogger.Log(rollbackException, "Startup registration rollback failed.");
+            }
+
+            ApplySettingsToForm();
+            queryPopupWindow?.SetTranslator(translator);
             SetStatus($"保存设置失败：{ex.Message}");
         }
     }
 
     private async void TestServiceButton_Click(object sender, RoutedEventArgs e)
     {
-        UpdateSettingsFromForm();
-        RebuildTranslator();
-        OpenLookupPopup(activateForInput: true);
-        if (queryPopupWindow is not null)
+        var previousTranslator = translator;
+        try
         {
-            await queryPopupWindow.SearchTextAsync("题干关键词");
+            translator = BuildTranslator(CreateTranslationSettingsFromForm());
+            queryPopupWindow?.SetTranslator(translator);
+            OpenLookupPopup(activateForInput: true);
+            if (queryPopupWindow is not null)
+            {
+                await queryPopupWindow.SearchTextAsync("题干关键词");
+            }
+        }
+        finally
+        {
+            translator = previousTranslator;
+            queryPopupWindow?.SetTranslator(translator);
         }
     }
 
     private void ApplyQuestionPresetButton_Click(object sender, RoutedEventArgs e)
     {
-        settings.Translation.ApiUrl = "http://47.109.40.237:5000/api/v1/search";
-        settings.Translation.RequestBodyType = RequestBodyType.Json;
-        settings.Translation.QueryField = "keyword";
-        settings.Translation.ResultPath = "data.success";
-        ApplySettingsToForm();
+        ApiUrlTextBox.Text = "http://47.109.40.237:5000/api/v1/search";
+        JsonBodyCheckBox.IsChecked = true;
+        QueryFieldTextBox.Text = "keyword";
+        ResultPathTextBox.Text = "data.success";
         SetStatus("题库接口预设已填入，请补充 Authorization 后保存");
     }
 
@@ -202,6 +235,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            AppLogger.Log(ex, "Selected text lookup failed.");
             OpenLookupPopup(activateForInput: true);
             SetStatus($"读取选中文字失败：{ex.Message}");
         }
@@ -223,6 +257,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            AppLogger.Log(ex, "Full-screen OCR failed.");
             RestoreMainWindowAfterCapture(shouldRestoreMainWindow);
             SetStatus($"OCR 失败：{ex.Message}");
         }
@@ -246,6 +281,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
+            AppLogger.Log(ex, "Region OCR failed.");
             RestoreMainWindowAfterCapture(shouldRestoreMainWindow);
             SetStatus($"区域 OCR 失败：{ex.Message}");
         }
@@ -264,11 +300,18 @@ public partial class MainWindow : Window
                 return;
             }
 
+            if (string.IsNullOrWhiteSpace(recognizedText))
+            {
+                SetStatus("静默 OCR 未识别到文字");
+                return;
+            }
+
             WpfClipboard.SetText(recognizedText);
-            SetStatus(string.IsNullOrWhiteSpace(recognizedText) ? "静默 OCR 未识别到文字" : "静默 OCR 已复制到剪贴板");
+            SetStatus("静默 OCR 已复制到剪贴板");
         }
         catch (Exception ex)
         {
+            AppLogger.Log(ex, "Silent region OCR failed.");
             RestoreMainWindowAfterCapture(shouldRestoreMainWindow);
             SetStatus($"静默 OCR 失败：{ex.Message}");
         }
@@ -321,43 +364,114 @@ public partial class MainWindow : Window
         MinimizeToTrayCheckBox.IsChecked = settings.MinimizeToTray;
     }
 
-    private void UpdateSettingsFromForm()
+    private AppSettings CreateSettingsFromForm()
     {
-        settings.Translation.ApiUrl = ApiUrlTextBox.Text.Trim();
-        settings.Translation.AuthToken = AuthTokenBox.Password.Trim();
-        settings.Translation.QueryField = string.IsNullOrWhiteSpace(QueryFieldTextBox.Text) ? "text" : QueryFieldTextBox.Text.Trim();
-        settings.Translation.RequestBodyType = JsonBodyCheckBox.IsChecked == true ? RequestBodyType.Json : RequestBodyType.Form;
-        settings.Translation.ResultPath = ResultPathTextBox.Text.Trim();
-        settings.Translation.SourceLanguage = string.IsNullOrWhiteSpace(SourceLanguageTextBox.Text) ? "auto" : SourceLanguageTextBox.Text.Trim();
-        settings.Translation.TargetLanguage = string.IsNullOrWhiteSpace(TargetLanguageTextBox.Text) ? "zh" : TargetLanguageTextBox.Text.Trim();
-        settings.Hotkeys.Input = HotkeyGestureParser.Parse(InputHotkeyTextBox.Text);
-        settings.Hotkeys.Lookup = HotkeyGestureParser.Parse(LookupHotkeyTextBox.Text);
-        settings.Hotkeys.Ocr = HotkeyGestureParser.Parse(OcrHotkeyTextBox.Text);
-        settings.Hotkeys.SilentOcr = HotkeyGestureParser.Parse(SilentOcrHotkeyTextBox.Text);
-        settings.LaunchAtLogin = LaunchAtLoginCheckBox.IsChecked == true;
-        settings.StartInTray = StartInTrayCheckBox.IsChecked == true;
-        settings.MinimizeToTray = MinimizeToTrayCheckBox.IsChecked == true;
+        return new AppSettings
+        {
+            Translation = CreateTranslationSettingsFromForm(),
+            Hotkeys = new HotkeySettings
+            {
+                Input = HotkeyGestureParser.Parse(InputHotkeyTextBox.Text),
+                Lookup = HotkeyGestureParser.Parse(LookupHotkeyTextBox.Text),
+                Ocr = HotkeyGestureParser.Parse(OcrHotkeyTextBox.Text),
+                SilentOcr = HotkeyGestureParser.Parse(SilentOcrHotkeyTextBox.Text),
+            },
+            Ocr = new OcrSettings
+            {
+                LanguageTag = settings.Ocr.LanguageTag,
+            },
+            LaunchAtLogin = LaunchAtLoginCheckBox.IsChecked == true,
+            StartInTray = StartInTrayCheckBox.IsChecked == true,
+            MinimizeToTray = MinimizeToTrayCheckBox.IsChecked == true,
+        };
+    }
+
+    private TranslationSettings CreateTranslationSettingsFromForm()
+    {
+        return new TranslationSettings
+        {
+            ApiUrl = ApiUrlTextBox.Text.Trim(),
+            AuthToken = AuthTokenBox.Password.Trim(),
+            QueryField = string.IsNullOrWhiteSpace(QueryFieldTextBox.Text) ? "text" : QueryFieldTextBox.Text.Trim(),
+            RequestBodyType = JsonBodyCheckBox.IsChecked == true ? RequestBodyType.Json : RequestBodyType.Form,
+            ResultPath = ResultPathTextBox.Text.Trim(),
+            SourceLanguage = string.IsNullOrWhiteSpace(SourceLanguageTextBox.Text) ? "auto" : SourceLanguageTextBox.Text.Trim(),
+            TargetLanguage = string.IsNullOrWhiteSpace(TargetLanguageTextBox.Text) ? "zh" : TargetLanguageTextBox.Text.Trim(),
+        };
     }
 
     private void RebuildTranslator()
     {
-        translator = string.IsNullOrWhiteSpace(settings.Translation.ApiUrl)
+        translator = BuildTranslator(settings);
+    }
+
+    private static ITranslator BuildTranslator(AppSettings targetSettings)
+    {
+        return BuildTranslator(targetSettings.Translation);
+    }
+
+    private static ITranslator BuildTranslator(TranslationSettings targetSettings)
+    {
+        return string.IsNullOrWhiteSpace(targetSettings.ApiUrl)
             ? new EchoTranslator()
-            : new CustomHttpTranslator(settings.Translation);
+            : new CustomHttpTranslator(targetSettings);
     }
 
     private void RegisterHotkeys()
     {
-        ValidateHotkeyUniqueness();
+        ReplaceHotkeys(settings);
+        SetStatus("全局快捷键已注册");
+    }
+
+    private void ReplaceHotkeys(AppSettings targetSettings)
+    {
+        if (hotkeyService is not null && AreHotkeysEqual(settings, targetSettings))
+        {
+            return;
+        }
+
+        var previousHotkeyService = hotkeyService;
+        hotkeyService = null;
+        previousHotkeyService?.Dispose();
+
+        try
+        {
+            hotkeyService = CreateHotkeyService(targetSettings);
+        }
+        catch
+        {
+            TryRestoreCurrentHotkeys();
+            throw;
+        }
+    }
+
+    private void TryRestoreCurrentHotkeys()
+    {
+        hotkeyService?.Dispose();
+        hotkeyService = null;
+
+        try
+        {
+            hotkeyService = CreateHotkeyService(settings);
+        }
+        catch (Exception restoreException)
+        {
+            AppLogger.Log(restoreException, "Hotkey rollback failed.");
+        }
+    }
+
+    private GlobalHotkeyService CreateHotkeyService(AppSettings targetSettings)
+    {
+        ValidateHotkeyUniqueness(targetSettings);
 
         var nextHotkeyService = new GlobalHotkeyService(this);
         try
         {
             nextHotkeyService.HotkeyPressed += HotkeyService_HotkeyPressed;
-            nextHotkeyService.Register(HotkeyAction.Input, settings.Hotkeys.Input);
-            nextHotkeyService.Register(HotkeyAction.Lookup, settings.Hotkeys.Lookup);
-            nextHotkeyService.Register(HotkeyAction.Ocr, settings.Hotkeys.Ocr);
-            nextHotkeyService.Register(HotkeyAction.SilentOcr, settings.Hotkeys.SilentOcr);
+            nextHotkeyService.Register(HotkeyAction.Input, targetSettings.Hotkeys.Input);
+            nextHotkeyService.Register(HotkeyAction.Lookup, targetSettings.Hotkeys.Lookup);
+            nextHotkeyService.Register(HotkeyAction.Ocr, targetSettings.Hotkeys.Ocr);
+            nextHotkeyService.Register(HotkeyAction.SilentOcr, targetSettings.Hotkeys.SilentOcr);
         }
         catch
         {
@@ -365,19 +479,17 @@ public partial class MainWindow : Window
             throw;
         }
 
-        hotkeyService?.Dispose();
-        hotkeyService = nextHotkeyService;
-        SetStatus("全局快捷键已注册");
+        return nextHotkeyService;
     }
 
-    private void ValidateHotkeyUniqueness()
+    private static void ValidateHotkeyUniqueness(AppSettings targetSettings)
     {
         var hotkeys = new[]
         {
-            ("输入查询", settings.Hotkeys.Input),
-            ("划词查询", settings.Hotkeys.Lookup),
-            ("OCR", settings.Hotkeys.Ocr),
-            ("静默 OCR", settings.Hotkeys.SilentOcr),
+            ("输入查询", targetSettings.Hotkeys.Input),
+            ("划词查询", targetSettings.Hotkeys.Lookup),
+            ("OCR", targetSettings.Hotkeys.Ocr),
+            ("静默 OCR", targetSettings.Hotkeys.SilentOcr),
         };
 
         var duplicate = hotkeys
@@ -387,6 +499,14 @@ public partial class MainWindow : Window
         {
             throw new InvalidOperationException($"快捷键冲突：{string.Join("、", duplicate.Select(item => item.Item1))}");
         }
+    }
+
+    private static bool AreHotkeysEqual(AppSettings first, AppSettings second)
+    {
+        return HotkeyGestureParser.ToInvariantText(first.Hotkeys.Input) == HotkeyGestureParser.ToInvariantText(second.Hotkeys.Input)
+            && HotkeyGestureParser.ToInvariantText(first.Hotkeys.Lookup) == HotkeyGestureParser.ToInvariantText(second.Hotkeys.Lookup)
+            && HotkeyGestureParser.ToInvariantText(first.Hotkeys.Ocr) == HotkeyGestureParser.ToInvariantText(second.Hotkeys.Ocr)
+            && HotkeyGestureParser.ToInvariantText(first.Hotkeys.SilentOcr) == HotkeyGestureParser.ToInvariantText(second.Hotkeys.SilentOcr);
     }
 
     private void ShowHistoryWindow()

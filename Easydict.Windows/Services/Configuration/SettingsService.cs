@@ -39,7 +39,25 @@ public sealed class SettingsService
     {
         Directory.CreateDirectory(SettingsDirectory);
         var json = JsonSerializer.Serialize(settings, JsonOptions);
-        File.WriteAllText(SettingsPath, json);
+        var tempPath = Path.Combine(SettingsDirectory, $"settings.{Guid.NewGuid():N}.tmp");
+        File.WriteAllText(tempPath, json);
+
+        try
+        {
+            File.Move(tempPath, SettingsPath, true);
+        }
+        catch
+        {
+            try
+            {
+                File.Delete(tempPath);
+            }
+            catch
+            {
+            }
+
+            throw;
+        }
     }
 
     private static string SettingsDirectory =>

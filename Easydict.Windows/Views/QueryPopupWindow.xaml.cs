@@ -48,8 +48,13 @@ public partial class QueryPopupWindow : Window
         }
 
         var cursor = Forms.Cursor.Position;
-        Left = cursor.X + 14;
-        Top = cursor.Y + 14;
+        var targetLeft = cursor.X + 14;
+        var targetTop = cursor.Y + 14;
+        var workingArea = Forms.Screen.FromPoint(cursor).WorkingArea;
+        var popupWidth = ActualWidth > 0 ? ActualWidth : Width;
+        var popupHeight = ActualHeight > 0 ? ActualHeight : Height;
+        Left = Math.Clamp(targetLeft, workingArea.Left, Math.Max(workingArea.Left, workingArea.Right - popupWidth));
+        Top = Math.Clamp(targetTop, workingArea.Top, Math.Max(workingArea.Top, workingArea.Bottom - popupHeight));
 
         if (!IsVisible)
         {

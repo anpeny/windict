@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows;
@@ -43,7 +44,9 @@ public sealed class GlobalHotkeyService : IDisposable
         var id = idBase + (int)action;
         if (!RegisterHotKey(windowHandle, id, (uint)gesture.Modifiers, (uint)gesture.VirtualKey))
         {
-            throw new InvalidOperationException($"Unable to register global hotkey for {action}.");
+            var error = Marshal.GetLastWin32Error();
+            throw new InvalidOperationException(
+                $"Unable to register global hotkey for {action}: {new Win32Exception(error).Message}");
         }
 
         registeredIds.Add(id);

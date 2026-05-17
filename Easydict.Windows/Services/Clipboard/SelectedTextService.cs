@@ -72,28 +72,37 @@ public sealed class SelectedTextService
             previousClipboard = null;
         }
 
-        SendCopyShortcut();
-        await Task.Delay(copyDelay, cancellationToken);
-
         string? copiedText = null;
+        var sequenceBeforeCopy = GetClipboardSequenceNumber();
         try
         {
-            copiedText = WpfClipboard.ContainsText() ? WpfClipboard.GetText() : null;
-        }
-        catch (ExternalException)
-        {
-            copiedText = null;
-        }
+            SendCopyShortcut();
+            await Task.Delay(copyDelay, cancellationToken);
 
-        if (previousClipboard is not null)
-        {
-            try
+            if (GetClipboardSequenceNumber() != sequenceBeforeCopy)
             {
-                WpfClipboard.SetDataObject(previousClipboard, true);
+                try
+                {
+                    copiedText = WpfClipboard.ContainsText() ? WpfClipboard.GetText() : null;
+                }
+                catch (ExternalException)
+                {
+                    copiedText = null;
+                }
             }
-            catch (ExternalException)
+        }
+        finally
+        {
+            if (previousClipboard is not null)
             {
-                // Clipboard ownership can fail when another app changes it at the same time.
+                try
+                {
+                    WpfClipboard.SetDataObject(previousClipboard, true);
+                }
+                catch (ExternalException)
+                {
+                    // Clipboard ownership can fail when another app changes it at the same time.
+                }
             }
         }
 
@@ -139,6 +148,9 @@ public sealed class SelectedTextService
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern uint SendInput(uint inputCount, Input[] inputs, int inputSize);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetClipboardSequenceNumber();
 
     [StructLayout(LayoutKind.Sequential)]
     private struct Input
