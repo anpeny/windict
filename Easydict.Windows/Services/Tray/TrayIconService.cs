@@ -21,7 +21,7 @@ public sealed class TrayIconService : IDisposable
         notifyIcon = new Forms.NotifyIcon
         {
             Icon = Drawing.SystemIcons.Application,
-            Text = "Easydict - ready",
+            Text = "Easydict",
             ContextMenuStrip = BuildContextMenu(),
         };
 
@@ -49,15 +49,16 @@ public sealed class TrayIconService : IDisposable
     private Forms.ContextMenuStrip BuildContextMenu()
     {
         var menu = new Forms.ContextMenuStrip();
-        menu.Items.Add("Show", null, (_, _) => ShowRequested?.Invoke(this, EventArgs.Empty));
-        menu.Items.Add("Input Lookup", null, (_, _) => InputRequested?.Invoke(this, EventArgs.Empty));
-        menu.Items.Add("Lookup", null, (_, _) => LookupRequested?.Invoke(this, EventArgs.Empty));
-        menu.Items.Add("Full Screen OCR", null, (_, _) => OcrRequested?.Invoke(this, EventArgs.Empty));
-        menu.Items.Add("Region OCR", null, (_, _) => RegionOcrRequested?.Invoke(this, EventArgs.Empty));
-        menu.Items.Add("Silent Region OCR", null, (_, _) => SilentOcrRequested?.Invoke(this, EventArgs.Empty));
-        menu.Items.Add("History", null, (_, _) => HistoryRequested?.Invoke(this, EventArgs.Empty));
+        menu.Items.Add("显示主窗口", null, (_, _) => ShowRequested?.Invoke(this, EventArgs.Empty));
         menu.Items.Add(new Forms.ToolStripSeparator());
-        menu.Items.Add("Exit", null, (_, _) => ExitRequested?.Invoke(this, EventArgs.Empty));
+        menu.Items.Add("输入查询", null, (_, _) => InputRequested?.Invoke(this, EventArgs.Empty));
+        menu.Items.Add("划词查询", null, (_, _) => LookupRequested?.Invoke(this, EventArgs.Empty));
+        menu.Items.Add("全屏 OCR", null, (_, _) => OcrRequested?.Invoke(this, EventArgs.Empty));
+        menu.Items.Add("区域 OCR", null, (_, _) => RegionOcrRequested?.Invoke(this, EventArgs.Empty));
+        menu.Items.Add("静默区域 OCR", null, (_, _) => SilentOcrRequested?.Invoke(this, EventArgs.Empty));
+        menu.Items.Add("查询历史", null, (_, _) => HistoryRequested?.Invoke(this, EventArgs.Empty));
+        menu.Items.Add(new Forms.ToolStripSeparator());
+        menu.Items.Add("退出 Easydict", null, (_, _) => ExitRequested?.Invoke(this, EventArgs.Empty));
         return menu;
     }
 }

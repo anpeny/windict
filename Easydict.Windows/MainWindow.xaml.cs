@@ -128,10 +128,10 @@ public partial class MainWindow : Window
         try
         {
             UpdateSettingsFromForm();
-            settingsService.Save(settings);
-            startupRegistrationService.SetEnabled(settings.LaunchAtLogin);
             RebuildTranslator();
             RegisterHotkeys();
+            settingsService.Save(settings);
+            startupRegistrationService.SetEnabled(settings.LaunchAtLogin);
             SetStatus("设置已保存");
         }
         catch (Exception ex)
@@ -202,6 +202,7 @@ public partial class MainWindow : Window
 
     private async Task CaptureOcrAsync()
     {
+        var shouldRestoreMainWindow = ShouldRestoreMainWindowAfterCapture();
         try
         {
             SetStatus("正在截图并识别文字...");
@@ -209,23 +210,24 @@ public partial class MainWindow : Window
             await Task.Delay(160);
             var image = screenCaptureService.CaptureAllScreens();
             var recognizedText = await ocrService.RecognizeAsync(image, CancellationToken.None);
-            ShowMainWindow();
+            RestoreMainWindowAfterCapture(shouldRestoreMainWindow);
             OpenLookupPopup(recognizedText);
             SetStatus(string.IsNullOrWhiteSpace(recognizedText) ? "OCR 未识别到文字" : "OCR 已完成");
         }
         catch (Exception ex)
         {
-            ShowMainWindow();
+            RestoreMainWindowAfterCapture(shouldRestoreMainWindow);
             SetStatus($"OCR 失败：{ex.Message}");
         }
     }
 
     private async Task CaptureRegionOcrAsync()
     {
+        var shouldRestoreMainWindow = ShouldRestoreMainWindowAfterCapture();
         try
         {
             SetStatus("请选择截图区域...");
-            var recognizedText = await CaptureSelectedRegionTextAsync(restoreMainWindow: true);
+            var recognizedText = await CaptureSelectedRegionTextAsync(shouldRestoreMainWindow);
             if (recognizedText is null)
             {
                 SetStatus("已取消区域截图");
@@ -237,17 +239,18 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            ShowMainWindow();
+            RestoreMainWindowAfterCapture(shouldRestoreMainWindow);
             SetStatus($"区域 OCR 失败：{ex.Message}");
         }
     }
 
     private async Task CaptureSilentRegionOcrAsync()
     {
+        var shouldRestoreMainWindow = ShouldRestoreMainWindowAfterCapture();
         try
         {
             SetStatus("请选择静默 OCR 区域...");
-            var recognizedText = await CaptureSelectedRegionTextAsync(restoreMainWindow: true);
+            var recognizedText = await CaptureSelectedRegionTextAsync(shouldRestoreMainWindow);
             if (recognizedText is null)
             {
                 SetStatus("已取消静默 OCR");
@@ -259,7 +262,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            ShowMainWindow();
+            RestoreMainWindowAfterCapture(shouldRestoreMainWindow);
             SetStatus($"静默 OCR 失败：{ex.Message}");
         }
     }
@@ -341,11 +344,19 @@ public partial class MainWindow : Window
         ValidateHotkeyUniqueness();
 
         var nextHotkeyService = new GlobalHotkeyService(this);
-        nextHotkeyService.HotkeyPressed += HotkeyService_HotkeyPressed;
-        nextHotkeyService.Register(HotkeyAction.Input, settings.Hotkeys.Input);
-        nextHotkeyService.Register(HotkeyAction.Lookup, settings.Hotkeys.Lookup);
-        nextHotkeyService.Register(HotkeyAction.Ocr, settings.Hotkeys.Ocr);
-        nextHotkeyService.Register(HotkeyAction.SilentOcr, settings.Hotkeys.SilentOcr);
+        try
+        {
+            nextHotkeyService.HotkeyPressed += HotkeyService_HotkeyPressed;
+            nextHotkeyService.Register(HotkeyAction.Input, settings.Hotkeys.Input);
+            nextHotkeyService.Register(HotkeyAction.Lookup, settings.Hotkeys.Lookup);
+            nextHotkeyService.Register(HotkeyAction.Ocr, settings.Hotkeys.Ocr);
+            nextHotkeyService.Register(HotkeyAction.SilentOcr, settings.Hotkeys.SilentOcr);
+        }
+        catch
+        {
+            nextHotkeyService.Dispose();
+            throw;
+        }
 
         hotkeyService?.Dispose();
         hotkeyService = nextHotkeyService;
@@ -435,6 +446,23 @@ public partial class MainWindow : Window
         Show();
         WindowState = WindowState.Normal;
         Activate();
+    }
+
+    private bool ShouldRestoreMainWindowAfterCapture()
+    {
+        return IsVisible && WindowState != WindowState.Minimized;
+    }
+
+    private void RestoreMainWindowAfterCapture(bool shouldRestoreMainWindow)
+    {
+        if (shouldRestoreMainWindow)
+        {
+            ShowMainWindow();
+        }
+        else
+        {
+            HideToTray(showNotification: false);
+        }
     }
 
     public void RequestShowMainWindow()
