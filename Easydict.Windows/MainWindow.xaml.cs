@@ -38,6 +38,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         Loaded += MainWindow_Loaded;
         SourceInitialized += MainWindow_SourceInitialized;
+        StateChanged += MainWindow_StateChanged;
     }
 
     private void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -56,6 +57,11 @@ public partial class MainWindow : Window
         trayIconService.ExitRequested += (_, _) => ExitApplication();
         trayIconService.Show();
         SetStatus(string.Join(" | ", startupService.GetEnvironmentSummary().Take(2)));
+
+        if (settings.StartInTray)
+        {
+            HideToTray(showNotification: true);
+        }
     }
 
     private void MainWindow_SourceInitialized(object? sender, EventArgs e)
@@ -298,6 +304,8 @@ public partial class MainWindow : Window
         OcrHotkeyTextBox.Text = HotkeyGestureParser.ToDisplayText(settings.Hotkeys.Ocr);
         SilentOcrHotkeyTextBox.Text = HotkeyGestureParser.ToDisplayText(settings.Hotkeys.SilentOcr);
         LaunchAtLoginCheckBox.IsChecked = settings.LaunchAtLogin;
+        StartInTrayCheckBox.IsChecked = settings.StartInTray;
+        MinimizeToTrayCheckBox.IsChecked = settings.MinimizeToTray;
     }
 
     private void UpdateSettingsFromForm()
@@ -314,6 +322,8 @@ public partial class MainWindow : Window
         settings.Hotkeys.Ocr = HotkeyGestureParser.Parse(OcrHotkeyTextBox.Text);
         settings.Hotkeys.SilentOcr = HotkeyGestureParser.Parse(SilentOcrHotkeyTextBox.Text);
         settings.LaunchAtLogin = LaunchAtLoginCheckBox.IsChecked == true;
+        settings.StartInTray = StartInTrayCheckBox.IsChecked == true;
+        settings.MinimizeToTray = MinimizeToTrayCheckBox.IsChecked == true;
     }
 
     private void RebuildTranslator()
@@ -376,6 +386,25 @@ public partial class MainWindow : Window
         StatusText.Text = $"[{DateTime.Now:HH:mm:ss}] {message}";
     }
 
+    private void MainWindow_StateChanged(object? sender, EventArgs e)
+    {
+        if (WindowState == WindowState.Minimized && settings.MinimizeToTray && !isExitRequested)
+        {
+            HideToTray(showNotification: false);
+        }
+    }
+
+    private void HideToTray(bool showNotification)
+    {
+        ShowInTaskbar = false;
+        Hide();
+        SetStatus("已隐藏到系统托盘");
+        if (showNotification)
+        {
+            trayIconService?.ShowInfo("Easydict", "Easydict is running in the system tray.");
+        }
+    }
+
     protected override void OnClosed(EventArgs e)
     {
         hotkeyService?.Dispose();
@@ -390,8 +419,7 @@ public partial class MainWindow : Window
         if (!isExitRequested)
         {
             e.Cancel = true;
-            Hide();
-            SetStatus("已隐藏到托盘");
+            HideToTray(showNotification: true);
             return;
         }
 
@@ -400,6 +428,7 @@ public partial class MainWindow : Window
 
     private void ShowMainWindow()
     {
+        ShowInTaskbar = true;
         Show();
         WindowState = WindowState.Normal;
         Activate();

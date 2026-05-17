@@ -23,6 +23,9 @@ Use this checklist on a real Windows machine after each desktop-integration chan
 - Launch the app with `dotnet run`.
 - Launch a second instance and confirm it exits.
 - Close the main window and confirm the tray icon remains.
+- Start the app and confirm it can start hidden in the system tray.
+- Minimize the main window and confirm it hides to the system tray.
+- Confirm the app is not left as a normal taskbar app while hidden.
 - Use the tray menu to show the main window.
 - Use the tray menu to exit.
 

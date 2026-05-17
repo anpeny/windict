@@ -93,6 +93,7 @@
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
                         </Grid.RowDefinitions>
 
                         <TextBlock Grid.ColumnSpan="2"
@@ -212,7 +213,19 @@
                                   Margin="0,12,0,0"
                                   Content="Start Easydict when Windows starts" />
 
-                        <StackPanel Grid.Row="13"
+                        <CheckBox x:Name="StartInTrayCheckBox"
+                                  Grid.Row="13"
+                                  Grid.Column="1"
+                                  Margin="0,12,0,0"
+                                  Content="Start hidden in system tray" />
+
+                        <CheckBox x:Name="MinimizeToTrayCheckBox"
+                                  Grid.Row="14"
+                                  Grid.Column="1"
+                                  Margin="0,12,0,0"
+                                  Content="Minimize to system tray" />
+
+                        <StackPanel Grid.Row="15"
                                     Grid.Column="1"
                                     Margin="0,16,0,0"
                                     Orientation="Horizontal">

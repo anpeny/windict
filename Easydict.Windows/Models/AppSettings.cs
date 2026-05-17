@@ -8,6 +8,8 @@ public sealed class AppSettings
     public TranslationSettings Translation { get; set; } = new();
     public OcrSettings Ocr { get; set; } = new();
     public bool LaunchAtLogin { get; set; }
+    public bool StartInTray { get; set; } = true;
+    public bool MinimizeToTray { get; set; } = true;
 
     public static AppSettings Default => new();
 }

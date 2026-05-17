@@ -21,7 +21,7 @@ public sealed class TrayIconService : IDisposable
         notifyIcon = new Forms.NotifyIcon
         {
             Icon = Drawing.SystemIcons.Application,
-            Text = "Easydict",
+            Text = "Easydict - ready",
             ContextMenuStrip = BuildContextMenu(),
         };
 
@@ -31,6 +31,13 @@ public sealed class TrayIconService : IDisposable
     public void Show()
     {
         notifyIcon.Visible = true;
+    }
+
+    public void ShowInfo(string title, string message)
+    {
+        notifyIcon.BalloonTipTitle = title;
+        notifyIcon.BalloonTipText = message;
+        notifyIcon.ShowBalloonTip(2500);
     }
 
     public void Dispose()
