@@ -2,7 +2,6 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Automation;
 using WpfClipboard = System.Windows.Clipboard;
-using WpfDataFormats = System.Windows.DataFormats;
 using WpfDataObject = System.Windows.IDataObject;
 
 namespace Easydict.Windows.Services.Clipboard;
@@ -66,9 +65,7 @@ public sealed class SelectedTextService
         WpfDataObject? previousClipboard = null;
         try
         {
-            previousClipboard = WpfClipboard.ContainsData(WpfDataFormats.Text) || WpfClipboard.ContainsData(WpfDataFormats.UnicodeText)
-                ? WpfClipboard.GetDataObject()
-                : null;
+            previousClipboard = WpfClipboard.GetDataObject();
         }
         catch (ExternalException)
         {
