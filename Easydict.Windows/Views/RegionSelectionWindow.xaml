@@ -12,9 +12,9 @@
             MouseMove="SelectionCanvas_MouseMove"
             MouseUp="SelectionCanvas_MouseUp">
         <Rectangle x:Name="SelectionRectangle"
-                   Stroke="#3B82F6"
-                   StrokeThickness="2"
-                   Fill="#333B82F6"
+                   Stroke="#333B82F6"
+                   StrokeThickness="1"
+                   Fill="#1A3B82F6"
                    Visibility="Collapsed" />
         <TextBlock Canvas.Left="20"
                    Canvas.Top="20"
@@ -24,4 +24,3 @@
                    Background="#AA111827" />
     </Canvas>
 </Window>
-
